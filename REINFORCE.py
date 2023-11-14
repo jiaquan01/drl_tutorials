@@ -8,7 +8,7 @@ from torch.distributions import Categorical
 
 
 #Hyperparameters
-learning_rate = 0.0002
+learning_rate = 3.6e-3 
 gamma         = 0.98
 
 class Policy(nn.Module):
@@ -22,49 +22,53 @@ class Policy(nn.Module):
         
     def forward(self, x):
         x = F.relu(self.fc1(x))
-        x = F.softmax(self.fc2(x), dim=0)
-        return x
+        return F.softmax(self.fc2(x), dim=0)
+    
       
     def put_data(self, item):
         self.data.append(item)
         
     def train_net(self):
-        R = 0
+        dis_return = 0
         self.optimizer.zero_grad()
         for r, prob in self.data[::-1]:
-            R = r + gamma * R
-            loss = -torch.log(prob) * R
+            dis_return = r + gamma * dis_return
+            loss = -torch.log(prob) * dis_return
             loss.backward()
         self.optimizer.step()
         self.data = []
+    
 
 def main():
-    env = gym.make('CartPole-v1', render_mode="human")
+    env = gym.make('CartPole-v1') #, render_mode="human"
     pi = Policy()
-    score = 0.0
+    total_reward = 0.0
     print_interval = 20
     
-    
-    for n_epi in range(1000):
-        s, _ = env.reset()
+    for n_epi in range(1000): # episode = 1000
+        state, _ = env.reset()
         done = False
-        
-        while not done: # CartPole-v1 forced to terminates at 500 step.
+        truncated = False
+
+        while not (done or truncated): # CartPole-v1 forced to terminates at 500 step.
             
-            prob = pi(torch.from_numpy(s).float())
-            m = Categorical(prob)
-            a = m.sample()
-            s_prime, r, done, truncated, info = env.step(a.item())
-            pi.put_data((r,prob[a]))
-            s = s_prime
-            score += r
+            prob = pi(torch.from_numpy(state).float())
+            pd = Categorical(prob) 
+            action = pd.sample() 
+            state_prime, reward, done, truncated, info = env.step(action.item())
+            pi.put_data((reward,prob[action])) #prob[action]:  get the probability of action
+            state = state_prime
+            total_reward += reward
             
         pi.train_net()
         
         if n_epi%print_interval==0 and n_epi!=0:
-            print("# of episode :{}, avg score : {}".format(n_epi, score/print_interval))
-            score = 0.0
+            print("# of episode :{}, total_reward : {}".format(n_epi, total_reward/print_interval))
+            total_reward = 0.0
+
     env.close()
+
+    
     
 if __name__ == '__main__':
     main()

@@ -16,7 +16,7 @@ conda activate drl
 conda install pytorch torchvision torchaudio cpuonly -c pytorch
 pip install "gymnasium[all]"
 ```
-## How to Run
+## Run
 ```
 1.Open the folder with vscode 
 2.Ctrl+Shift+P，select python:select interpreter
