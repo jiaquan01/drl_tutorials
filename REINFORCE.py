@@ -8,7 +8,7 @@ from torch.distributions import Categorical
 
 
 #Hyperparameters
-learning_rate = 3.6e-3 
+learning_rate = 5.0e-3 
 gamma         = 0.98
 
 class Policy(nn.Module):
@@ -16,13 +16,15 @@ class Policy(nn.Module):
         super(Policy, self).__init__()
         self.data = []
         
-        self.fc1 = nn.Linear(4, 128)
-        self.fc2 = nn.Linear(128, 2)
+        self.fc1 = nn.Linear(4, 64)
+        self.fc2 = nn.Linear(64, 64)
+        self.fc3 = nn.Linear(64, 2)
         self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
         
     def forward(self, x):
         x = F.relu(self.fc1(x))
-        return F.softmax(self.fc2(x), dim=0)
+        x = F.relu(self.fc2(x))
+        return F.softmax(self.fc3(x), dim=0)
     
       
     def put_data(self, item):
@@ -41,22 +43,21 @@ class Policy(nn.Module):
 
 def main():
     env = gym.make('CartPole-v1') #, render_mode="human"
+    torch.manual_seed(0)
     pi = Policy()
     total_reward = 0.0
     print_interval = 20
     
-    for n_epi in range(1000): # episode = 1000
-        state, _ = env.reset()
-        done = False
-        truncated = False
-
-        while not (done or truncated): # CartPole-v1 forced to terminates at 500 step.
-            
+    for n_epi in range(1000): 
+        state, _ = env.reset(seed=123)
+        terminated,truncated = False,False
+        while not (terminated | truncated)  : # CartPole-v1 forced to terminates at 500 step.           
             prob = pi(torch.from_numpy(state).float())
             pd = Categorical(prob) 
             action = pd.sample() 
-            state_prime, reward, done, truncated, info = env.step(action.item())
-            pi.put_data((reward,prob[action])) #prob[action]:  get the probability of action
+            state_prime, reward, terminated, truncated, info = env.step(action.item())
+
+            pi.put_data((reward,prob[action])) 
             state = state_prime
             total_reward += reward
             
