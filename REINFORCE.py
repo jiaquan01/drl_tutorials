@@ -53,8 +53,10 @@ def main():
         terminated,truncated = False,False
         while not (terminated | truncated)  : # CartPole-v1 forced to terminates at 500 step.           
             prob = pi(torch.from_numpy(state).float())
+            #print(prob)
             pd = Categorical(prob) 
             action = pd.sample() 
+            #print(action)
             state_prime, reward, terminated, truncated, info = env.step(action.item())
 
             pi.put_data((reward,prob[action])) 
