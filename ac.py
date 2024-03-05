@@ -72,7 +72,7 @@ def main():
 
     for n_epi in range(10000):
         done = False
-        s, _ = env.reset()
+        s, _ = env.reset(seed=123)
         while not done:
             for t in range(n_rollout):
                 prob = model.pi(torch.from_numpy(s).float())

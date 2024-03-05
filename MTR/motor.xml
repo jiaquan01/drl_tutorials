@@ -1,0 +1,50 @@
+<mujoco model="XR4Ginger_717">
+    <compiler angle="degree" eulerseq="xyz" assetdir="../assets" meshdir="../assets" texturedir="../assets"/>
+    <statistic extent="2" center="0 0 1"/>
+    <option timestep="0.001" gravity="0 0 -9.81" iterations="50" tolerance="1e-10" solver="PGS" jacobian="dense" cone="pyramidal" />
+
+    <visual>
+        <global offwidth="800" offheight="800" />
+        <map force="0.005" zfar="20" />
+        <rgba haze="0.15 0.25 0.35 1" />
+        <scale com="0.1" forcewidth="0.1" contactwidth="0.30" contactheight="0.1"/>
+    </visual>
+
+    <default>
+        <joint limited="false" range="-180 180" solimplimit="0.95 0.99 0.01" stiffness="0.0" armature=".00001" damping="0.01"/>
+        <motor ctrllimited="true" ctrlrange="-1000 1000"/>
+        <geom condim="3" type="mesh" group="0" solref="0.001 1" solimp="0.99 0.999 0.003" />
+
+        <default class="viz">
+            <geom friction="0.7" type="mesh" rgba="0.8 0.8 0.8 1" contype="0" conaffinity="0" group="1" />
+        </default>
+
+        <default class="joint">
+            <joint stiffness="0" damping="0.01" frictionloss="0.01"/>
+        </default>
+    </default>
+
+    <worldbody>
+        <light mode="targetbodycom" target="base" directional="true" diffuse=".8 .8 .8" specular="0.8 0.8 0.8" pos="0 0 4" dir="0 0 -1" />
+
+        <body name="base" pos="1.0 0 0" euler="90 0 0">
+            <geom class="viz" type="box" size="0.02 0.02 0.02" euler="0 0 0" rgba="0 0 1 1"/>
+            <body name="pole" pos="0 0 0.03" euler=" 0 0 0 ">
+                <joint name="motor" axis="0 0 1" class="joint"/>
+                <geom class="viz" type="box" size="0.04 0.01 0.01" pos="0.04 0 0" euler="0 0 0" mass="0.001" rgba="0 1 0 1"/>
+                <body name="load" pos="0.08 0 0" euler=" 0 0 0 ">
+                    <geom class="viz" type="sphere" size="0.02" mass="10" rgba="1 0 0 1"/>
+                </body>
+            </body>
+        </body>
+    </worldbody>
+
+    <actuator>
+        <motor name="motor" joint="motor"/>
+    </actuator>
+
+    <sensor>
+        <jointpos name="motor_pos" joint="motor"/>
+        <jointvel name="motor_vel" joint="motor"/>
+    </sensor>
+</mujoco>
